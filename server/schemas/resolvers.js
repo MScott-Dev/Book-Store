@@ -1,5 +1,5 @@
-import { User, Book } from '../models'
-import { signToken } from '../utils/auth'
+const { User } = require('../models');
+const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
     Query: {
@@ -7,7 +7,7 @@ const resolvers = {
             if (context.user) {
                 return User.findOne({ _id: context.user._id });
             }
-            throw new Error("Error! user not found");
+            throw AuthenticationError;
         },
     },
     Mutation: {
