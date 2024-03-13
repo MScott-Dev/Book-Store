@@ -5,7 +5,7 @@ const resolvers = {
   Query: {
     me: async (parent, args, context) => {
       if (context.user) {
-        return User.findOne({ _id: context.user._id });
+        return User.findOne({ _id: context.user._id }).select("-__v -password");
       }
       throw AuthenticationError;
     },
@@ -15,12 +15,12 @@ const resolvers = {
       const user = await User.FindOne({ email: args.email });
 
       if (!user) {
-        throw new Error("Error! user not found");
+        throw AuthenticationError;
       }
       const isCorrectPassword = await user.isCorrectPassword(args.password);
 
       if (!isCorrectPassword) {
-        throw new Error("Error! invalid credentails");
+        throw AuthenticationError;
       }
       const token = signToken(user);
       return { token, user };
@@ -33,12 +33,12 @@ const resolvers = {
     },
     saveBook: async (parent, args, context) => {
       if (context.user) {
-        const updatedUser = await User.findByIdAndUpdate(
+        const updatedUser = await User.findOneAndUpdate(
           {
             _id: context.user._id,
           },
           {
-            $push: {
+            $addToSet: {
               savedBooks: args.input,
             },
           },
@@ -46,12 +46,12 @@ const resolvers = {
         );
         return updatedUser;
       }
-      throw new Error("Error! user not found");
+      throw AuthenticationError;
     },
 
     removeBook: async (parent, args, context) => {
       if (context.user) {
-        const updatedUser = await User.findByIdAndUpdate(
+        const updatedUser = await User.findOneAndUpdate(
           {
             _id: context.user._id,
           },
@@ -66,7 +66,7 @@ const resolvers = {
         );
         return updatedUser;
       }
-      throw new Error("Error! user not found");
+      throw AuthenticationError;
     },
   },
 };
